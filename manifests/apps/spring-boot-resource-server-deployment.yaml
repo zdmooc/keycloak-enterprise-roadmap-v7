@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-resource-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-resource-server
+  template:
+    metadata:
+      labels:
+        app: demo-resource-server
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/example/demo-resource-server:0.1.0
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+              value: https://keycloak.example.com/realms/demo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-resource-server
+spec:
+  selector:
+    app: demo-resource-server
+  ports:
+    - port: 8081
+      targetPort: 8081

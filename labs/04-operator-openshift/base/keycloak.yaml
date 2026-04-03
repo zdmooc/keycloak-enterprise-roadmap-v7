@@ -1,0 +1,29 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: sso
+  namespace: keycloak
+spec:
+  instances: 2
+  db:
+    vendor: postgres
+    host: postgres.keycloak.svc.cluster.local
+    database: keycloak
+    usernameSecret:
+      name: keycloak-db-secret
+      key: username
+    passwordSecret:
+      name: keycloak-db-secret
+      key: password
+  http:
+    httpEnabled: true
+  hostname:
+    hostname: sso.example.local
+  features:
+    enabled:
+      - token-exchange-standard:v2
+  additionalOptions:
+    - name: health-enabled
+      value: "true"
+    - name: metrics-enabled
+      value: "true"

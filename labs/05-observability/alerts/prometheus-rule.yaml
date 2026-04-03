@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: keycloak-alerts
+  namespace: keycloak
+spec:
+  groups:
+    - name: keycloak.rules
+      rules:
+        - alert: KeycloakTargetDown
+          expr: up{job="keycloak"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Keycloak target down"
+            description: "Prometheus ne scrape plus Keycloak."

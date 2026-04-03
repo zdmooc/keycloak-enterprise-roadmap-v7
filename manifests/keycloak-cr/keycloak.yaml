@@ -1,0 +1,28 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: example-kc
+  namespace: keycloak
+spec:
+  instances: 2
+  db:
+    vendor: postgres
+    host: postgres.keycloak.svc.cluster.local
+    database: keycloak
+    usernameSecret:
+      name: keycloak-db-secret
+      key: username
+    passwordSecret:
+      name: keycloak-db-secret
+      key: password
+  hostname:
+    hostname: keycloak.local
+  http:
+    httpEnabled: true
+  proxy:
+    headers: xforwarded
+  additionalOptions:
+    - name: health-enabled
+      value: "true"
+    - name: metrics-enabled
+      value: "true"

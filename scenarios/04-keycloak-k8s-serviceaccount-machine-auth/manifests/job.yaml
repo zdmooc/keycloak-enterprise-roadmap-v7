@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kc-machine-auth-demo
+spec:
+  template:
+    spec:
+      serviceAccountName: kc-machine-client
+      restartPolicy: Never
+      containers:
+        - name: curl
+          image: curlimages/curl:8.7.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Replace with real token exchange or workload identity flow";
+              sleep 5

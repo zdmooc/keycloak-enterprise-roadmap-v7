@@ -1,0 +1,10 @@
+{
+  "title": "Keycloak Overview",
+  "description": "Dashboard de départ pour la supervision Keycloak",
+  "panels": [
+    {"title": "Up", "type": "stat"},
+    {"title": "HTTP Activity", "type": "timeseries"},
+    {"title": "Errors", "type": "timeseries"},
+    {"title": "JVM / Pods", "type": "timeseries"}
+  ]
+}

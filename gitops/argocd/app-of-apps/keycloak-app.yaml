@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak-platform
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://example.invalid/replace-with-your-repo.git
+    targetRevision: main
+    path: gitops/argocd/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

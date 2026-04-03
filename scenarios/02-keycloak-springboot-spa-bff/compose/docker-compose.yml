@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    command:
+      - start-dev
+      - --http-enabled=true
+      - --hostname-strict=false
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: adminadmin
+    ports:
+      - "8080:8080"
+
+  resource-server:
+    image: hashicorp/http-echo:1.0
+    command: ["-listen=:5678", "-text=replace-me-with-real-spring-boot"]
+    ports:
+      - "8085:5678"
+
+  web-client:
+    image: hashicorp/http-echo:1.0
+    command: ["-listen=:5678", "-text=replace-me-with-real-web-client"]
+    ports:
+      - "8086:5678"
+
+  bff:
+    image: hashicorp/http-echo:1.0
+    command: ["-listen=:5678", "-text=replace-me-with-real-bff"]
+    ports:
+      - "8087:5678"

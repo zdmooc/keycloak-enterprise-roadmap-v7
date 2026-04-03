@@ -1,0 +1,13 @@
+http:
+  routers:
+    whoami:
+      rule: "Host(`whoami.localhost`)"
+      entryPoints:
+        - web
+      service: oauth2proxy
+  services:
+    oauth2proxy:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://oauth2-proxy:4180"

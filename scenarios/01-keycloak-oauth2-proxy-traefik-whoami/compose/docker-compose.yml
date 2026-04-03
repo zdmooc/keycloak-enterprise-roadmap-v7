@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    command:
+      - start-dev
+      - --http-enabled=true
+      - --hostname=http://keycloak.localhost:8080
+      - --proxy-headers=xforwarded
+      - --import-realm
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-adminadmin}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    volumes:
+      - ../realm:/opt/keycloak/data/import:ro
+    ports:
+      - "8080:8080"
+    networks:
+      default:
+        aliases:
+          - keycloak.localhost
+
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.8.1
+    depends_on:
+      - keycloak
+      - whoami
+    command:
+      - --http-address=0.0.0.0:4180
+      - --provider=keycloak-oidc
+      - --oidc-issuer-url=${KEYCLOAK_EXTERNAL_URL:-http://keycloak.localhost:8080}/realms/${OIDC_REALM:-demo}
+      - --client-id=${OIDC_CLIENT_ID:-whoami-proxy}
+      - --client-secret=${OIDC_CLIENT_SECRET:-whoami-proxy-secret}
+      - --cookie-secret=${OAUTH2_PROXY_COOKIE_SECRET:-0123456789abcdef0123456789abcdef0123456789ab=}
+      - --email-domain=*
+      - --scope=openid profile email
+      - --upstream=http://whoami:80
+      - --redirect-url=${WHOAMI_EXTERNAL_URL:-http://whoami.localhost:8088}/oauth2/callback
+      - --cookie-secure=false
+      - --cookie-samesite=lax
+      - --reverse-proxy=true
+      - --set-xauthrequest=true
+      - --pass-access-token=true
+      - --set-authorization-header=true
+      - --skip-provider-button=true
+      - --whitelist-domain=.localhost
+    ports:
+      - "4180:4180"
+
+  whoami:
+    image: traefik/whoami:v1.10
+
+  traefik:
+    image: traefik:v3.1
+    depends_on:
+      - oauth2-proxy
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --entrypoints.web.address=:80
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+      - --providers.file.watch=true
+      - --accesslog=true
+    ports:
+      - "8088:80"
+      - "8089:8080"
+    volumes:
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro

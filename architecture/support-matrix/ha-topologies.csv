@@ -1,0 +1,6 @@
+topology,classification,notes
+single-cluster-low-latency,documented-supported-like,Topology aligned with official low-latency guidance
+multi-az-single-cluster,documented-supported-like,Validate actual zone placement and DB behavior
+multi-cluster-same-region,context-validated,Requires stronger platform maturity and tests
+multi-site-pra,context-validated,DR procedure and evidence mandatory
+multi-region-active-active,experimental,High complexity and strong need for validation

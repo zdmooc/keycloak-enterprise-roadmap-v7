@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: keycloak-alerts
+  namespace: keycloak
+spec:
+  groups:
+    - name: keycloak.rules
+      rules:
+        - alert: KeycloakPodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="keycloak"}[15m]) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Redémarrage d'un conteneur Keycloak"
+        - alert: KeycloakPodNotReady
+          expr: kube_pod_status_ready{namespace="keycloak", condition="true"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod Keycloak non prêt"
