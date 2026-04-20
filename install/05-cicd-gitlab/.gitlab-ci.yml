@@ -1,0 +1,173 @@
+# Auteur : Zidane Djamal
+# Description : Pipeline GitLab CI/CD complet pour la gestion du cycle de vie de Keycloak.
+# Ce pipeline couvre : validation, tests, déploiement et promotion d'environnement.
+#
+# Variables CI/CD à configurer dans GitLab (Settings > CI/CD > Variables) :
+#   - VAULT_ADDR          : URL de HashiCorp Vault (ex: https://vault.example.com)
+#   - VAULT_ROLE          : Rôle Vault pour l'authentification JWT GitLab CI
+#   - KC_DEV_URL          : URL Keycloak de développement
+#   - KC_STAGING_URL      : URL Keycloak de staging
+#   - KC_PROD_URL         : URL Keycloak de production
+#   - KUBECONFIG_DEV      : Contenu du kubeconfig pour le cluster de dev (base64)
+#   - KUBECONFIG_PROD     : Contenu du kubeconfig pour le cluster de prod (base64)
+
+stages:
+  - validate
+  - test
+  - deploy-dev
+  - deploy-staging
+  - deploy-prod
+
+# ============================================================
+# TEMPLATES RÉUTILISABLES
+# ============================================================
+.vault_auth: &vault_auth
+  before_script:
+    - echo "Authentification auprès de HashiCorp Vault via JWT GitLab CI..."
+    - |
+      export VAULT_TOKEN=$(vault write -field=token auth/jwt/login \
+        role="${VAULT_ROLE}" \
+        jwt="${CI_JOB_JWT_V2}")
+    - echo "Récupération des secrets Keycloak depuis Vault..."
+    - export KC_ADMIN_USER=$(vault kv get -field=username secret/keycloak/admin)
+    - export KC_ADMIN_PASSWORD=$(vault kv get -field=password secret/keycloak/admin)
+
+.kubectl_setup: &kubectl_setup
+  before_script:
+    - mkdir -p ~/.kube
+    - echo "${KUBECONFIG_DEV}" | base64 -d > ~/.kube/config
+    - chmod 600 ~/.kube/config
+
+# ============================================================
+# STAGE 1 : VALIDATION
+# ============================================================
+validate:realm-json:
+  stage: validate
+  image: python:3.11-slim
+  script:
+    - echo "Validation de la syntaxe JSON des fichiers de Realm..."
+    - |
+      for f in $(find . -name "*.json" -path "*/realm/*"); do
+        echo "Validation de $f..."
+        python3 -c "import json; json.load(open('$f'))" && echo "  OK: $f" || (echo "  ERREUR: $f" && exit 1)
+      done
+    - echo "Tous les fichiers JSON de Realm sont valides."
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+validate:terraform:
+  stage: validate
+  image:
+    name: hashicorp/terraform:1.6
+    entrypoint: [""]
+  script:
+    - echo "Validation de la syntaxe Terraform..."
+    - |
+      for dir in install/03-cloud-terraform/aws install/03-cloud-terraform/gcp install/03-cloud-terraform/azure install/03-cloud-terraform/shared; do
+        if [ -d "$dir" ]; then
+          echo "Validation de $dir..."
+          cd "$dir"
+          terraform init -backend=false -input=false
+          terraform validate
+          cd -
+        fi
+      done
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+validate:ansible-lint:
+  stage: validate
+  image: cytopia/ansible-lint:latest
+  script:
+    - echo "Lint des playbooks Ansible..."
+    - ansible-lint install/04-ansible/site.yml || true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ============================================================
+# STAGE 2 : TESTS
+# ============================================================
+test:smoke:
+  stage: test
+  image: curlimages/curl:latest
+  script:
+    - echo "Exécution des smoke tests sur l'environnement de développement..."
+    - ./install/05-cicd-gitlab/tests/smoke-tests.sh "${KC_DEV_URL}"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH =~ /^feature\//'
+
+test:load-k6:
+  stage: test
+  image:
+    name: grafana/k6:latest
+    entrypoint: [""]
+  script:
+    - echo "Exécution des tests de charge k6 sur l'environnement de développement..."
+    - |
+      k6 run \
+        --env KC_URL="${KC_DEV_URL}" \
+        --env KC_REALM="enterprise" \
+        --env KC_CLIENT_ID="backend-api" \
+        --vus 10 \
+        --duration 30s \
+        install/05-cicd-gitlab/tests/k6-load-tests.js
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  allow_failure: false
+
+# ============================================================
+# STAGE 3 : DÉPLOIEMENT - DÉVELOPPEMENT
+# ============================================================
+deploy:realm-dev:
+  stage: deploy-dev
+  image: quay.io/keycloak/keycloak:26.1
+  <<: *vault_auth
+  script:
+    - echo "Déploiement de la configuration Realm sur l'environnement de DEV..."
+    - ./install/05-cicd-gitlab/scripts/realm-import.sh "${KC_DEV_URL}" "${KC_ADMIN_USER}" "${KC_ADMIN_PASSWORD}" "dev"
+  environment:
+    name: development
+    url: $KC_DEV_URL
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ============================================================
+# STAGE 4 : DÉPLOIEMENT - STAGING (automatique après DEV)
+# ============================================================
+deploy:realm-staging:
+  stage: deploy-staging
+  image: quay.io/keycloak/keycloak:26.1
+  <<: *vault_auth
+  script:
+    - echo "Déploiement de la configuration Realm sur l'environnement de STAGING..."
+    - ./install/05-cicd-gitlab/scripts/realm-import.sh "${KC_STAGING_URL}" "${KC_ADMIN_USER}" "${KC_ADMIN_PASSWORD}" "staging"
+  environment:
+    name: staging
+    url: $KC_STAGING_URL
+  needs:
+    - deploy:realm-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ============================================================
+# STAGE 5 : DÉPLOIEMENT - PRODUCTION (approbation manuelle requise)
+# ============================================================
+deploy:realm-prod:
+  stage: deploy-prod
+  image: quay.io/keycloak/keycloak:26.1
+  <<: *vault_auth
+  script:
+    - echo "Déploiement de la configuration Realm sur l'environnement de PRODUCTION..."
+    - ./install/05-cicd-gitlab/scripts/realm-import.sh "${KC_PROD_URL}" "${KC_ADMIN_USER}" "${KC_ADMIN_PASSWORD}" "prod"
+  environment:
+    name: production
+    url: $KC_PROD_URL
+  needs:
+    - deploy:realm-staging
+  when: manual  # Approbation manuelle obligatoire avant le déploiement en production
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'

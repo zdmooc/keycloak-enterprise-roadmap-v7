@@ -1,0 +1,11 @@
+---
+# Auteur : Zidane Djamal
+# Description : OperatorGroup OLM permettant à l'Operator Keycloak d'opérer dans le namespace keycloak-system
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: keycloak-operator-group
+  namespace: keycloak-system
+spec:
+  targetNamespaces:
+    - keycloak-system

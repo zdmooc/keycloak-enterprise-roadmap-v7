@@ -1,0 +1,42 @@
+# Auteur : Zidane Djamal
+# Description : Unité systemd pour Keycloak générée par Ansible
+# Ce fichier est déployé dans /etc/systemd/system/keycloak.service
+
+[Unit]
+Description=Keycloak Identity and Access Management Server
+Documentation=https://www.keycloak.org/guides
+After=network.target postgresql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User={{ keycloak_user }}
+Group={{ keycloak_group }}
+WorkingDirectory={{ keycloak_home }}
+
+# Commande de démarrage
+ExecStart={{ keycloak_home }}/bin/kc.sh start
+
+# Variables d'environnement pour les credentials admin (bootstrap uniquement)
+Environment="KEYCLOAK_ADMIN={{ keycloak_admin_user }}"
+Environment="KEYCLOAK_ADMIN_PASSWORD={{ keycloak_admin_password }}"
+
+# Gestion des redémarrages
+Restart=on-failure
+RestartSec=10s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=keycloak
+
+# Limites de ressources
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Sécurité systemd
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths={{ keycloak_home }}/data {{ keycloak_log_dir }}
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

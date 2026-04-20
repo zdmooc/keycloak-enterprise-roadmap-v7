@@ -1,0 +1,10 @@
+---
+# Auteur : Zidane Djamal
+# Description : Variables par défaut pour le rôle keycloak-prereqs
+
+keycloak_user: keycloak
+keycloak_group: keycloak
+keycloak_home: /opt/keycloak
+keycloak_http_port: 8080
+keycloak_https_port: 8443
+keycloak_management_port: 9000

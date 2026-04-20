@@ -1,0 +1,14 @@
+---
+# Auteur : Zidane Djamal
+# Description : Subscription OLM pour installer l'Operator Keycloak depuis OperatorHub (Red Hat)
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: rhbk-operator
+  namespace: keycloak-system
+spec:
+  channel: stable-v26
+  installPlanApproval: Automatic
+  name: rhbk-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

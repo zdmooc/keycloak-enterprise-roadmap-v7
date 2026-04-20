@@ -1,0 +1,12 @@
+---
+# Auteur : Zidane Djamal
+# Description : Handlers pour le rôle keycloak-config
+
+- name: Recharger systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Redémarrer Keycloak
+  ansible.builtin.systemd:
+    name: keycloak
+    state: restarted

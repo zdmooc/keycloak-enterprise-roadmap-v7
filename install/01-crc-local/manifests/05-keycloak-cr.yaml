@@ -1,0 +1,58 @@
+---
+# Auteur : Zidane Djamal
+# Description : Custom Resource Keycloak pour l'Operator RHBK sur OpenShift/CRC
+# L'Operator se charge de créer le Deployment, le Service et la Route automatiquement.
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: keycloak-system
+spec:
+  # Nombre d'instances Keycloak (1 pour un lab local, 2+ pour la HA)
+  instances: 1
+
+  # Image Keycloak (Red Hat Build of Keycloak)
+  image: registry.redhat.io/rhbk/keycloak-rhel9:26
+
+  # Configuration de l'accès HTTP/HTTPS
+  http:
+    httpEnabled: true
+
+  # Hostname (correspond à la Route OpenShift créée automatiquement)
+  hostname:
+    hostname: keycloak.apps-crc.testing
+
+  # Connexion à la base de données PostgreSQL
+  db:
+    vendor: postgres
+    host: postgresql
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: keycloak-db-secret
+      key: username
+    passwordSecret:
+      name: keycloak-db-secret
+      key: password
+
+  # Credentials de l'administrateur initial
+  bootstrapAdminUsername:
+    name: keycloak-admin-secret
+    key: username
+  bootstrapAdminPassword:
+    name: keycloak-admin-secret
+    key: password
+
+  # Activation des métriques et de la gestion de la santé
+  features:
+    enabled:
+      - metrics
+
+  # Ressources allouées au pod Keycloak
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"

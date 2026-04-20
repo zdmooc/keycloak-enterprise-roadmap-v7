@@ -1,0 +1,87 @@
+---
+# Auteur : Zidane Djamal
+# Description : Tâches de préparation de l'OS pour Keycloak (RHEL 8/9, Rocky Linux, AlmaLinux)
+
+- name: Mise à jour de tous les paquets système
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: true
+
+- name: Installation des dépendances essentielles
+  ansible.builtin.dnf:
+    name:
+      - java-17-openjdk-headless
+      - curl
+      - wget
+      - jq
+      - unzip
+      - firewalld
+      - python3-firewall
+    state: present
+
+- name: Démarrage et activation de firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Ouverture du port HTTP Keycloak (8080) dans le pare-feu
+  ansible.posix.firewalld:
+    port: "{{ keycloak_http_port }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+
+- name: Ouverture du port HTTPS Keycloak (8443) dans le pare-feu
+  ansible.posix.firewalld:
+    port: "{{ keycloak_https_port }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+
+- name: Ouverture du port de management Keycloak (9000) dans le pare-feu
+  ansible.posix.firewalld:
+    port: "{{ keycloak_management_port }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+
+- name: Ouverture du port JGroups pour le clustering (7800)
+  ansible.posix.firewalld:
+    port: "7800/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+
+- name: Configuration SELinux - Autoriser Keycloak à se connecter au réseau
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: true
+    persistent: true
+  when: ansible_selinux.status == "enabled"
+
+- name: Création de l'utilisateur système keycloak (sans shell de connexion)
+  ansible.builtin.user:
+    name: "{{ keycloak_user }}"
+    system: true
+    shell: /sbin/nologin
+    home: "{{ keycloak_home }}"
+    create_home: false
+
+- name: Création du répertoire d'installation Keycloak
+  ansible.builtin.file:
+    path: "{{ keycloak_home }}"
+    state: directory
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_user }}"
+    mode: "0750"
+
+- name: Vérification de la version Java installée
+  ansible.builtin.command: java -version
+  register: java_version_output
+  changed_when: false
+
+- name: Affichage de la version Java
+  ansible.builtin.debug:
+    msg: "Java installé : {{ java_version_output.stderr }}"

@@ -1,0 +1,55 @@
+# Auteur : Zidane Djamal
+# Description : Valeurs Helm pour le déploiement Keycloak via le chart Bitnami sur Kind
+# Référence : https://github.com/bitnami/charts/tree/main/bitnami/keycloak
+
+global:
+  storageClass: "standard"
+
+auth:
+  adminUser: admin
+  adminPassword: adminadmin
+
+# Désactiver PostgreSQL intégré du chart pour utiliser notre propre instance
+postgresql:
+  enabled: false
+
+# Connexion à notre PostgreSQL externe
+externalDatabase:
+  host: postgresql
+  port: 5432
+  user: keycloak
+  password: keycloak
+  database: keycloak
+  existingSecret: ""
+
+# Activer les métriques Prometheus
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false  # Mettre à true si Prometheus Operator est installé
+
+# Configuration du service (ClusterIP car on utilise un Ingress)
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+
+# Configuration de l'Ingress
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hostname: keycloak.local
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+
+# Ressources allouées
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 500m
+  limits:
+    memory: 1Gi
+    cpu: 1000m
+
+# Nombre de répliques (1 pour le lab local)
+replicaCount: 1

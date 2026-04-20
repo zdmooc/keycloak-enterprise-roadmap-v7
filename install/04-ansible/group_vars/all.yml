@@ -1,0 +1,37 @@
+---
+# Auteur : Zidane Djamal
+# Description : Variables globales pour tous les hôtes Ansible.
+# Les valeurs sensibles (mots de passe) doivent être chiffrées avec Ansible Vault :
+#   ansible-vault encrypt_string 'MonMotDePasse' --name 'keycloak_db_password'
+
+# ===== Version Keycloak =====
+keycloak_version: "26.1.0"
+keycloak_sha256: "PLACEHOLDER_SHA256_A_REMPLACER"
+
+# ===== Base de données =====
+keycloak_db_host: "10.0.1.20"
+keycloak_db_port: 5432
+keycloak_db_name: keycloak
+keycloak_db_user: keycloak
+# Chiffré avec Ansible Vault - déchiffrer avec : ansible-vault decrypt
+keycloak_db_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  # Remplacer cette valeur par le résultat de : ansible-vault encrypt_string 'VotreMotDePasse'
+
+# ===== Réseau =====
+keycloak_http_port: 8080
+keycloak_https_port: 8443
+keycloak_management_port: 9000
+keycloak_proxy_mode: "edge"
+
+# ===== Admin Keycloak (bootstrap) =====
+keycloak_admin_user: admin
+keycloak_admin_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  # Remplacer cette valeur par le résultat de : ansible-vault encrypt_string 'VotreMotDePasseAdmin'
+
+# ===== Clustering =====
+keycloak_cluster_enabled: true
+
+# ===== Logging =====
+keycloak_log_dir: /var/log/keycloak

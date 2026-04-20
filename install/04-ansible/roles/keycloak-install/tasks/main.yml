@@ -1,0 +1,57 @@
+---
+# Auteur : Zidane Djamal
+# Description : Tâches d'installation de Keycloak depuis l'archive officielle
+
+- name: Vérification si Keycloak {{ keycloak_version }} est déjà installé
+  ansible.builtin.stat:
+    path: "{{ keycloak_home }}/bin/kc.sh"
+  register: keycloak_binary
+
+- name: Téléchargement de l'archive Keycloak {{ keycloak_version }}
+  ansible.builtin.get_url:
+    url: "https://github.com/keycloak/keycloak/releases/download/{{ keycloak_version }}/keycloak-{{ keycloak_version }}.tar.gz"
+    dest: "/tmp/keycloak-{{ keycloak_version }}.tar.gz"
+    checksum: "sha256:{{ keycloak_sha256 }}"
+    mode: "0644"
+  when: not keycloak_binary.stat.exists
+
+- name: Extraction de l'archive Keycloak dans /opt
+  ansible.builtin.unarchive:
+    src: "/tmp/keycloak-{{ keycloak_version }}.tar.gz"
+    dest: /opt
+    remote_src: true
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_user }}"
+  when: not keycloak_binary.stat.exists
+
+- name: Création du lien symbolique /opt/keycloak -> /opt/keycloak-{{ keycloak_version }}
+  ansible.builtin.file:
+    src: "/opt/keycloak-{{ keycloak_version }}"
+    dest: "{{ keycloak_home }}"
+    state: link
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_user }}"
+  when: not keycloak_binary.stat.exists
+
+- name: Correction des droits sur le répertoire Keycloak
+  ansible.builtin.file:
+    path: "/opt/keycloak-{{ keycloak_version }}"
+    state: directory
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_user }}"
+    recurse: true
+
+- name: Suppression de l'archive temporaire
+  ansible.builtin.file:
+    path: "/tmp/keycloak-{{ keycloak_version }}.tar.gz"
+    state: absent
+
+- name: Vérification de l'installation
+  ansible.builtin.command: "{{ keycloak_home }}/bin/kc.sh --version"
+  become_user: "{{ keycloak_user }}"
+  register: kc_version_output
+  changed_when: false
+
+- name: Affichage de la version Keycloak installée
+  ansible.builtin.debug:
+    msg: "Keycloak installé : {{ kc_version_output.stdout }}"

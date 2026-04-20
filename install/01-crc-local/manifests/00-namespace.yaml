@@ -1,0 +1,10 @@
+---
+# Auteur : Zidane Djamal
+# Description : Création du projet OpenShift (namespace) dédié à Keycloak
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: keycloak-system
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: keycloak-enterprise

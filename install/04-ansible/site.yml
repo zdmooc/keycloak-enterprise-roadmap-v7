@@ -1,0 +1,23 @@
+---
+# Auteur : Zidane Djamal
+# Description : Playbook Ansible principal pour le déploiement complet de Keycloak sur VMs (RHEL/Rocky Linux).
+# Ce playbook orchestre les trois rôles dans l'ordre correct.
+
+- name: Préparation des prérequis système sur tous les nœuds Keycloak
+  hosts: keycloak_nodes
+  become: true
+  roles:
+    - role: keycloak-prereqs
+
+- name: Installation de Keycloak sur tous les nœuds
+  hosts: keycloak_nodes
+  become: true
+  roles:
+    - role: keycloak-install
+
+- name: Configuration de Keycloak et démarrage du service
+  hosts: keycloak_nodes
+  become: true
+  serial: 1  # Rolling deployment : un nœud à la fois pour éviter les interruptions
+  roles:
+    - role: keycloak-config

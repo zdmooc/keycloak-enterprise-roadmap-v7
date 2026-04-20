@@ -1,0 +1,11 @@
+---
+# Auteur : Zidane Djamal
+# Description : Variables par défaut pour le rôle keycloak-install
+
+keycloak_version: "26.1.0"
+# SHA256 de l'archive officielle - À mettre à jour à chaque nouvelle version
+# Vérifier sur : https://github.com/keycloak/keycloak/releases
+keycloak_sha256: "PLACEHOLDER_SHA256_A_REMPLACER"
+keycloak_user: keycloak
+keycloak_group: keycloak
+keycloak_home: /opt/keycloak

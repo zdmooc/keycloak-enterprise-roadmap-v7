@@ -1,0 +1,48 @@
+---
+# Auteur : Zidane Djamal
+# Description : Custom Resource Keycloak pour l'Operator sur Kind (image Docker Hub officielle)
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: keycloak-system
+spec:
+  instances: 1
+  image: quay.io/keycloak/keycloak:26.1
+
+  http:
+    httpEnabled: true
+
+  hostname:
+    hostname: keycloak.local
+
+  db:
+    vendor: postgres
+    host: postgresql
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: keycloak-db-secret
+      key: username
+    passwordSecret:
+      name: keycloak-db-secret
+      key: password
+
+  bootstrapAdminUsername:
+    name: keycloak-admin-secret
+    key: username
+  bootstrapAdminPassword:
+    name: keycloak-admin-secret
+    key: password
+
+  features:
+    enabled:
+      - metrics
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"

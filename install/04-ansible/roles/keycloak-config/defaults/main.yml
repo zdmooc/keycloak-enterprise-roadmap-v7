@@ -1,0 +1,30 @@
+---
+# Auteur : Zidane Djamal
+# Description : Variables par défaut pour le rôle keycloak-config
+# Ces valeurs DOIVENT être surchargées dans group_vars/all.yml ou via Vault
+
+keycloak_user: keycloak
+keycloak_group: keycloak
+keycloak_home: /opt/keycloak
+keycloak_log_dir: /var/log/keycloak
+
+# Base de données
+keycloak_db_host: localhost
+keycloak_db_port: 5432
+keycloak_db_name: keycloak
+keycloak_db_user: keycloak
+keycloak_db_password: "CHANGE_ME"  # À surcharger via Ansible Vault
+
+# Réseau
+keycloak_http_port: 8080
+keycloak_https_port: 8443
+keycloak_management_port: 9000
+keycloak_hostname: "{{ inventory_hostname }}"
+keycloak_proxy_mode: "edge"  # Options : edge, reencrypt, passthrough
+
+# Admin (bootstrap)
+keycloak_admin_user: admin
+keycloak_admin_password: "CHANGE_ME"  # À surcharger via Ansible Vault
+
+# Clustering
+keycloak_cluster_enabled: false

@@ -1,0 +1,50 @@
+# Auteur : Zidane Djamal
+# Description : Fichier de configuration Keycloak généré par Ansible
+# Référence : https://www.keycloak.org/server/all-config
+
+# ===== Base de données =====
+db=postgres
+db-url-host={{ keycloak_db_host }}
+db-url-port={{ keycloak_db_port }}
+db-url-database={{ keycloak_db_name }}
+db-username={{ keycloak_db_user }}
+db-password={{ keycloak_db_password }}
+db-pool-initial-size=5
+db-pool-min-size=5
+db-pool-max-size=20
+
+# ===== HTTP / HTTPS =====
+http-enabled=true
+http-port={{ keycloak_http_port }}
+https-port={{ keycloak_https_port }}
+{% if keycloak_tls_cert_file is defined %}
+https-certificate-file={{ keycloak_tls_cert_file }}
+https-certificate-key-file={{ keycloak_tls_key_file }}
+{% endif %}
+
+# ===== Hostname =====
+hostname={{ keycloak_hostname }}
+hostname-strict=true
+hostname-strict-https=false
+
+# ===== Proxy (si derrière un reverse proxy) =====
+{% if keycloak_proxy_mode is defined %}
+proxy={{ keycloak_proxy_mode }}
+{% endif %}
+
+# ===== Clustering (JGroups - JDBC_PING pour la découverte via la DB) =====
+{% if keycloak_cluster_enabled | default(false) %}
+cache=ispn
+cache-stack=jdbc-ping
+{% endif %}
+
+# ===== Métriques et Health =====
+metrics-enabled=true
+health-enabled=true
+http-management-port={{ keycloak_management_port }}
+
+# ===== Logging =====
+log=console,file
+log-level=INFO
+log-console-format=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n
+log-file={{ keycloak_log_dir }}/keycloak.log
