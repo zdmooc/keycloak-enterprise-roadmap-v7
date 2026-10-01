@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: keycloak-specialist
+  namespace: openshift-gitops
+spec:
+  description: Keycloak specialist reference deployment
+  sourceRepos:
+    - https://github.com/zdmooc/keycloak-enterprise-roadmap-v7.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: keycloak
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
