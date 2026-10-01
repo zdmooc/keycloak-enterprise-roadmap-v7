@@ -1,95 +1,76 @@
-# Scenario 01 — Keycloak + oauth2-proxy + Traefik + whoami (V7 exécutable)
+# Scenario 01 — Keycloak + oauth2-proxy + Traefik + whoami
 
 ## Objectif
-Montrer une chaîne SSO navigateur simple, lisible et **rejouable de bout en bout** en local.
 
-## Ce que la V7 apporte ici
-La V6 présentait déjà l’architecture. La V7 ajoute :
-- un `docker-compose.yml` réellement branchable ;
-- un realm importé automatiquement ;
-- un client OIDC confidentiel ;
-- un utilisateur de démonstration ;
-- un `Makefile` ;
-- des scripts `preflight`, `up`, `down`, `logs`, `smoke`.
+Montrer une chaîne SSO navigateur locale, lisible et rejouable de bout en bout.
 
-## Architecture
 ```text
 Browser
-  -> Traefik (whoami.localhost:8088)
+  -> Traefik
     -> oauth2-proxy
-      -> Keycloak (keycloak.localhost:8080)
+      -> Keycloak
     -> whoami
 ```
 
-## Identifiants de démonstration
-- **admin Keycloak** : `admin / adminadmin`
-- **utilisateur** : `demo / demopass`
+## Sécurité O6
 
-## Flux
-1. le navigateur appelle `http://whoami.localhost:8088/`
-2. Traefik route vers `oauth2-proxy`
-3. `oauth2-proxy` redirige vers Keycloak
-4. l’utilisateur s’authentifie
-5. Keycloak renvoie vers `oauth2-proxy`
-6. `oauth2-proxy` crée sa session et relaie vers `whoami`
-7. `whoami` affiche les informations de requête et certains en-têtes utiles
+Aucun mot de passe, client secret, cookie secret ou token concret n'est versionné.
 
-## Répertoire
-- `compose/docker-compose.yml`
-- `compose/traefik/dynamic.yml`
-- `realm/demo-realm.json`
-- `env/.env.example`
-- `scripts/`
-- `tests/smoke.sh`
-- `Makefile`
+`scripts/prepare.sh` génère localement :
+- `.env`;
+- `generated/demo-realm.json`;
+- mot de passe bootstrap admin;
+- client secret OIDC;
+- cookie secret oauth2-proxy;
+- mot de passe de l'utilisateur de démonstration.
 
-## Pré requis
-- Docker Desktop ou Docker Engine + Compose v2 ;
-- ports `8080`, `8088`, `8089`, `4180` libres ;
-- les domaines `*.localhost` doivent résoudre localement. Sur la plupart des postes modernes c’est déjà le cas. Si nécessaire, ajouter :
-  - `127.0.0.1 keycloak.localhost`
-  - `127.0.0.1 whoami.localhost`
+Ces fichiers sont ignorés par Git et les valeurs ne sont pas affichées par les scripts.
 
-## Démarrage rapide
+## Fichiers
+
+- `compose/docker-compose.yml`;
+- `compose/traefik/dynamic.yml`;
+- `realm/demo-realm.template.json`;
+- `env/.env.example`;
+- `scripts/prepare.sh`;
+- `scripts/up.sh`;
+- `tests/smoke.sh`.
+
+## Démarrage
+
 ```bash
-cp env/.env.example .env
 make up
 make smoke
 ```
 
-Ensuite ouvrir :
-- `http://whoami.localhost:8088`
-- `http://keycloak.localhost:8080/admin`
+Le premier `make up` génère automatiquement les secrets de lab.
 
-## Commandes utiles
+Pour consulter localement les identifiants de démonstration si nécessaire :
+
 ```bash
-make preflight
-make up
-make logs
-make smoke
-make down
+grep -E '^(KC_BOOTSTRAP_ADMIN_USERNAME|DEMO_USER_USERNAME)=' .env
 ```
 
-## Ce que vérifie le smoke test
-- que Keycloak répond ;
-- que le document OIDC du realm `demo` est accessible ;
-- que le frontal `whoami.localhost:8088` renvoie bien une redirection d’authentification ;
-- que Traefik répond.
+Ne jamais copier les mots de passe/tokens dans une preuve Git.
 
-## Points d’attention
-- le backend `whoami` n’est pas exposé directement au poste client ;
-- `oauth2-proxy` est ici le vrai point de contrôle navigateur ;
-- en local, le cookie est configuré sans `Secure` car le scénario est en HTTP ;
-- pour un usage sérieux, prévoir HTTPS, secret manager, rotation de secrets, observabilité et limitation réseau.
+## Endpoints
 
-## Résultat attendu
-Après authentification, la page `whoami` doit s’afficher et montrer notamment :
-- l’URL atteinte ;
-- des informations de requête ;
-- les en-têtes transitant jusqu’au backend.
+- application protégée : `http://whoami.localhost:8088`;
+- Keycloak : `http://keycloak.localhost:8080`;
+- Traefik dashboard : `http://localhost:8089/dashboard/`.
 
-## Preuves à déposer
-- capture de la page de login Keycloak ;
-- capture de la page `whoami` après login ;
-- sortie de `make smoke` ;
-- copie de `docker compose ps`.
+## Smoke test
+
+Le smoke valide :
+- découverte OIDC du realm;
+- disponibilité Keycloak;
+- redirection d'authentification depuis whoami;
+- accessibilité du dashboard Traefik.
+
+Il ne stocke pas de token.
+
+## Limites
+
+Ce scénario utilise HTTP local et `start-dev`.
+
+Il n'est pas une architecture de production. Pour la production : TLS, hostname/admin hostname, secret manager, base supportée, politique réseau, SSO admin, observabilité et stratégie HA/DR sont traités ailleurs dans le dépôt.
