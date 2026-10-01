@@ -1,6 +1,7 @@
 topology,classification,notes
-single-cluster-low-latency,documented-supported-like,Topology aligned with official low-latency guidance
-multi-az-single-cluster,documented-supported-like,Validate actual zone placement and DB behavior
-multi-cluster-same-region,context-validated,Requires stronger platform maturity and tests
-multi-site-pra,context-validated,DR procedure and evidence mandatory
-multi-region-active-active,experimental,High complexity and strong need for validation
+single-cluster-low-latency,documented-supported,Primary baseline; runtime evidence still environment-specific
+multi-az-single-cluster,documented-supported-pattern,Validate zone placement database and failure behavior
+multi-cluster-v2-stateless,supported-upstream-26.8,Preferred upstream multi-cluster direction; validate context and database
+multi-cluster-v1-multi-site,deprecated-upstream,Migration/reference only for new designs
+multi-site-pra,context-validated,DR procedure measured RTO/RPO and recovery evidence mandatory
+multi-region-active-active,context-specific-high-complexity,Do not claim without end-to-end evidence
