@@ -4,7 +4,7 @@ Référentiel spécialiste **Keycloak / IAM / OIDC / OAuth 2.0 / SAML** du portf
 
 ## Statut
 
-**O6 — HARDENED BASELINE / STATIC CI EN COURS DE CLÔTURE / KEYCLOAK 26.8 CONTAINER RUNTIME PROVEN / CRC CURRENT NOT_PROVEN**
+**O6 COMPLETE — STATIC_VALIDATED + CI_RUNTIME_PROVEN_CONTAINER_KEYCLOAK / CRC CURRENT NOT_PROVEN**
 
 ## Rôle canonique
 
@@ -57,7 +57,9 @@ Workflow Keycloak 26.8.0 container :
 - restart avec persistance du realm ;
 - token valide après restart.
 
-La preuve exacte est enregistrée sous `evidence/`.
+La preuve exacte est enregistrée sous `evidence/ci/O6-keycloak-runtime.md`.
+
+CI statique de clôture avant le commit final O6 : `36878286683` = **SUCCESS** sur `a00afa635ad4a2e067f3b67bae29948d7662af5c`.
 
 ## OpenShift / CRC
 

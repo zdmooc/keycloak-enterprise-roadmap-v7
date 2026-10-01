@@ -76,6 +76,10 @@ Proven run:
 
 ## I7 — Closure
 
+- dedicated runtime evidence recorded under `evidence/ci/O6-keycloak-runtime.md`;
+- CRC/RHBK evidence template added under `platform/crc/EVIDENCE_TEMPLATE.md`;
+- final closeout static CI `36878286683` = SUCCESS on `a00afa635ad4a2e067f3b67bae29948d7662af5c`.
+
 Final maturity:
 
 ```text

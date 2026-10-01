@@ -29,8 +29,9 @@
 ## Static evidence
 
 Keycloak Specialist CI:
-- run `36877706958` — **SUCCESS**;
-- commit `86319cfeadc7af57fe4b9618b91d22dc0c347ca8`.
+- baseline run `36877706958` — **SUCCESS**;
+- final closeout run before P0 synchronization `36878286683` — **SUCCESS**;
+- closeout commit `a00afa635ad4a2e067f3b67bae29948d7662af5c`.
 
 Validated:
 - active YAML/JSON structure;
@@ -80,3 +81,5 @@ No historical token value is used as evidence or reproduced in this repository's
 Current CRC/RHBK execution remains `NOT_PROVEN`.
 
 Only a fresh observed OpenShift execution may promote that level.
+
+Execution template: `platform/crc/EVIDENCE_TEMPLATE.md`.

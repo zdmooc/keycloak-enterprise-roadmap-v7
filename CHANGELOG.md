@@ -13,3 +13,12 @@
 - classified cloud Terraform/Ansible as requalification references;
 - added static/security CI;
 - added Keycloak 26.8 runtime proof with restart persistence.
+
+
+## 2026-10-01 — O6 complete
+
+- dedicated runtime evidence file added;
+- CRC/RHBK evidence template added;
+- final repository closeout CI `36878286683` succeeded on `a00afa635ad4a2e067f3b67bae29948d7662af5c`;
+- O6 promoted to COMPLETE;
+- current CRC/RHBK remains NOT_PROVEN and is an environment-specific future evidence gate.

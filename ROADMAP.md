@@ -8,10 +8,12 @@
 - [x] I4 — Keycloak 26.8 / Operator / HA refresh
 - [x] I5 — static/security CI implemented
 - [x] I6 — Keycloak 26.8 container runtime proof
-- [ ] I7 — final static closeout + P0 synchronization
+- [x] I7 — final static closeout + P0 synchronization
 
 ## Current evidence
 
+- O6 status: **COMPLETE**;
+- final static closeout before P0 sync: `36878286683` SUCCESS;
 - Keycloak 26.8 container runtime: proven;
 - current CRC/RHBK runtime: pending;
 - HA/multi-site: reference until failure tests;

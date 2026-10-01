@@ -88,3 +88,15 @@ It consumes:
 - `PRODUCTION_REFERENCE`
 
 No documentation or manifest is promoted to production evidence.
+
+
+## Completion
+
+O6 completed on 2026-10-01.
+
+Observed evidence:
+- static/security closeout CI: `36878286683` SUCCESS on `a00afa635ad4a2e067f3b67bae29948d7662af5c`;
+- Keycloak 26.8.0 runtime: `36877375874` SUCCESS;
+- readiness, metrics, OIDC discovery, Admin API lifecycle, client credentials token, restart persistence and post-restart token issuance observed.
+
+Current CRC/RHBK remains a separate `NOT_PROVEN` environment promotion gate.
