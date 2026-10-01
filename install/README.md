@@ -1,42 +1,44 @@
-# Installation et Déploiement de Keycloak
+# Installation and deployment surfaces
 
-> **Auteur** : Zidane Djamal - Expert IAM / DevOps  
-> **Dernière mise à jour** : Avril 2026
+**O6 classification — 2026-10-01**
 
-Ce répertoire centralise toutes les méthodes d'installation et de déploiement de Keycloak, des environnements locaux de développement jusqu'aux infrastructures Cloud de production.
+| Directory | Role | Status |
+|---|---|---|
+| `01-crc-local/` | Red Hat Build of Keycloak Operator lab on OpenShift Local | ACTIVE LAB / CURRENT CONTRACT |
+| `02-kind-local/` | upstream Keycloak Operator lab on Kind | ACTIVE LAB / CURRENT CONTRACT |
+| `03-cloud-terraform/` | historical cloud IaC examples | REFERENCE / REQUALIFICATION_REQUIRED |
+| `04-ansible/` | VM/bare-metal deployment reference | REFERENCE / REQUALIFICATION_REQUIRED |
+| `05-cicd-gitlab/` | CI/CD patterns | REFERENCE / PARTIAL VALIDATION |
 
-## Vue d'Ensemble des Méthodes
+## Canonical rule
 
-| Méthode | Environnement | Outil Principal | Cas d'Usage |
-| :--- | :--- | :--- | :--- |
-| `01-crc-local/` | Local (OpenShift) | OC CLI + Operator | Développement, test sur OpenShift |
-| `02-kind-local/` | Local (Kubernetes) | Kind + kubectl | Développement, test sur Kubernetes pur |
-| `03-cloud-terraform/` | AWS / GCP / Azure | Terraform | Production Cloud |
-| `04-ansible/` | VMs / Bare-Metal | Ansible | Production sur RHEL/Rocky Linux |
-| `05-cicd-gitlab/` | Tous environnements | GitLab CI/CD | Automatisation CI/CD, Realm as Code |
+This repository does not own generic cluster provisioning.
 
-## Parcours Recommandé
+For Kubernetes/OpenShift cluster lifecycle use:
+`k8s-openshift-cluster-factory`.
 
-Le parcours d'apprentissage recommandé suit une progression logique, du plus simple au plus complexe :
+## Secrets
 
-**Étape 1 — Maîtriser l'environnement local Kubernetes (Kind)**  
-Commencez par `02-kind-local/` si vous êtes familier avec Docker et Kubernetes standard. C'est le point d'entrée le plus accessible pour comprendre le déploiement de l'Operator Keycloak.
+No active installation path should require a committed credential Secret.
 
-**Étape 2 — Maîtriser l'environnement local OpenShift (CRC)**  
-Passez ensuite à `01-crc-local/` pour comprendre les spécificités d'OpenShift (Routes, OperatorHub, RHBK). C'est indispensable pour les environnements d'entreprise utilisant Red Hat.
+Local labs create the DB Secret from runtime environment variables. Operator-generated bootstrap-admin credentials are temporary and must never be committed.
 
-**Étape 3 — Automatiser avec Ansible (VMs)**  
-Explorez `04-ansible/` pour comprendre comment déployer Keycloak sur des VMs RHEL, ce qui reste courant dans les environnements d'entreprise traditionnels ou les environnements "air-gapped".
+## Cloud Terraform
 
-**Étape 4 — Déployer sur le Cloud avec Terraform**  
-Abordez `03-cloud-terraform/` pour maîtriser le déploiement d'une infrastructure complète (réseau, base de données managée, cluster Kubernetes managé) sur AWS, GCP ou Azure.
+The cloud examples contain historically useful architecture ideas but old provider/platform pins. They are not labeled production-ready until refreshed and tested against current cloud versions.
 
-**Étape 5 — Industrialiser avec CI/CD**  
-Finalisez avec `05-cicd-gitlab/` pour comprendre comment automatiser l'ensemble du cycle de vie (Realm as Code, tests, promotion d'environnement, intégration Vault).
+## Ansible
 
-## Prérequis Communs
+The Ansible area demonstrates VM/bare-metal concepts. It requires requalification of:
+- Keycloak version;
+- Java/runtime prerequisites;
+- checksum;
+- systemd bootstrap process;
+- clustering;
+- TLS;
+- database;
+- rolling upgrade.
 
-Quel que soit l'environnement cible, les prérequis suivants sont recommandés :
-- Lecture préalable du parcours `docs/learning-path.md` (niveaux 0 à 4 minimum).
-- Compréhension des protocoles OIDC et OAuth2 (`docs/01-fundamentals/`).
-- Familiarité avec les concepts de base de Kubernetes (Pods, Services, Secrets, ConfigMaps).
+## Evidence
+
+Use `evidence/CLAIM_EVIDENCE_MATRIX.md` rather than directory names or README wording to determine maturity.
