@@ -1,14 +1,30 @@
 # Roadmap
 
-## V7
-Objectif : rendre le dépôt démontrable immédiatement en local avec une stack simple mais crédible.
+## O6 — 2026-10-01
 
-### Livré
-- scénario 01 exécutable avec Keycloak, oauth2-proxy, Traefik et whoami ;
-- tests de fumée ;
-- import de realm prêt à l’emploi.
+- [x] I1 — token / secret truth
+- [x] I2 — GitOps cleanup
+- [x] I3 — runtime secret delivery
+- [x] I4 — Keycloak 26.8 / Operator / HA refresh
+- [x] I5 — static/security CI implemented
+- [x] I6 — Keycloak 26.8 container runtime proof
+- [ ] I7 — final static closeout + P0 synchronization
 
-### Suite possible
-- scénario 02 rendu exécutable avec Spring Boot ;
-- version HTTPS locale avec certificats mkcert ;
-- version Kubernetes locale avec Ingress.
+## Current evidence
+
+- Keycloak 26.8 container runtime: proven;
+- current CRC/RHBK runtime: pending;
+- HA/multi-site: reference until failure tests;
+- production: not claimed.
+
+## Mission-driven extensions
+
+- fresh CRC/RHBK replay;
+- LDAP/AD federation runtime;
+- identity brokering runtime;
+- WebAuthn/passkeys;
+- client policies/secret rotation;
+- Operator upgrade;
+- PostgreSQL backup/restore;
+- multi-cluster v2 failure tests;
+- real Spring Boot/BFF scenario.
