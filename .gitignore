@@ -14,3 +14,12 @@ evidence/**/*.jpg
 evidence/**/*.json
 evidence/**/*.html
 evidence/**/*.txt
+
+# O6 — generated authentication/runtime artifacts
+labs-local/**/*-token.json
+labs-local/**/payload.json
+labs-local/**/*.out
+**/access-token.json
+**/refresh-token.json
+**/admin-token.json
+**/alice-token.json
