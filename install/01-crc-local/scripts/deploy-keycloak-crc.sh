@@ -1,47 +1,48 @@
-#!/bin/bash
-# Auteur : Zidane Djamal
-# Description : Script de déploiement automatisé de Keycloak sur CRC (OpenShift local) via l'Operator.
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MANIFEST_DIR="$(cd "$SCRIPT_DIR/../manifests" && pwd)"
+NAMESPACE="${NAMESPACE:-keycloak-system}"
 
-echo "=================================================================="
-echo "  Déploiement Keycloak sur CodeReady Containers (CRC) - OpenShift "
-echo "=================================================================="
+: "${KC_DB_USERNAME:?set KC_DB_USERNAME}"
+: "${KC_DB_PASSWORD:?set KC_DB_PASSWORD}"
 
-NAMESPACE="keycloak-system"
+command -v oc >/dev/null 2>&1 || { echo "oc CLI is required"; exit 1; }
+oc whoami >/dev/null
 
-echo "[1/7] Création du projet/namespace : $NAMESPACE"
-oc new-project $NAMESPACE || true
-oc project $NAMESPACE
+echo "== Namespace"
+oc apply -f "$MANIFEST_DIR/00-namespace.yaml"
 
-echo "[2/7] Configuration de l'OperatorGroup et Subscription (OLM)"
-oc apply -f ../manifests/01-operator-group.yaml
-oc apply -f ../manifests/02-subscription.yaml
+echo "== RHBK Operator"
+oc apply -f "$MANIFEST_DIR/01-operator-group.yaml"
+oc apply -f "$MANIFEST_DIR/02-subscription.yaml"
 
-echo "Attente de l'installation de l'Operator Keycloak (cela peut prendre quelques minutes)..."
-sleep 10
-oc wait --for=condition=Ready pod -l name=keycloak-operator -n $NAMESPACE --timeout=300s
+echo "Waiting for the Red Hat build of Keycloak Operator CSV..."
+for _ in $(seq 1 120); do
+  if oc -n "$NAMESPACE" get csv -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.status.phase}{"\n"}{end}'     | grep -E 'rhbk|keycloak' | grep -q Succeeded; then
+    break
+  fi
+  sleep 5
+done
 
-echo "[3/7] Création des Secrets (Base de données et Admin Keycloak)"
-oc apply -f ../manifests/04-keycloak-secrets.yaml
+oc -n "$NAMESPACE" get csv
 
-echo "[4/7] Déploiement de PostgreSQL"
-oc apply -f ../manifests/03-postgres.yaml
-oc wait --for=condition=Ready pod -l app=postgresql -n $NAMESPACE --timeout=300s
+echo "== Database credential Secret created at runtime"
+oc -n "$NAMESPACE" create secret generic keycloak-db-secret   --from-literal=username="$KC_DB_USERNAME"   --from-literal=password="$KC_DB_PASSWORD"   --dry-run=client -o yaml | oc apply -f -
 
-echo "[5/7] Déploiement de l'instance Keycloak (Custom Resource)"
-oc apply -f ../manifests/05-keycloak-cr.yaml
+echo "== PostgreSQL lab database"
+oc apply -f "$MANIFEST_DIR/03-postgres.yaml"
+oc -n "$NAMESPACE" rollout status statefulset/postgresql --timeout=300s
 
-echo "[6/7] Attente de la disponibilité de Keycloak"
-oc wait --for=condition=Ready keycloak/keycloak -n $NAMESPACE --timeout=600s
+echo "== Keycloak CR"
+oc apply -f "$MANIFEST_DIR/05-keycloak-cr.yaml"
+oc -n "$NAMESPACE" wait --for=condition=Ready keycloak/keycloak --timeout=600s
 
-echo "[7/7] Récupération de la Route (URL d'accès)"
-ROUTE_HOST=$(oc get route keycloak -n $NAMESPACE -o jsonpath='{.spec.host}')
+echo "== Result"
+oc -n "$NAMESPACE" get keycloak keycloak -o wide
+oc -n "$NAMESPACE" get pods,svc,route,ingress 2>/dev/null || true
 
-echo "=================================================================="
-echo "  Déploiement Terminé avec Succès !                               "
-echo "=================================================================="
-echo "URL d'accès : https://$ROUTE_HOST"
-echo "Utilisateur : admin"
-echo "Mot de passe: adminadmin (défini dans 04-keycloak-secrets.yaml)"
-echo "=================================================================="
+echo "CRC_KEYCLOAK_DEPLOY=PASS"
+echo "The Operator-generated initial admin credential is stored in keycloak-initial-admin."
+echo "Retrieve it only when needed and never commit its value."
