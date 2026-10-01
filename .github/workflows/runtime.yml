@@ -1,0 +1,32 @@
+name: Keycloak Runtime Proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/runtime-keycloak-container.sh"
+      - ".github/workflows/runtime.yml"
+  pull_request:
+    paths:
+      - "scripts/runtime-keycloak-container.sh"
+      - ".github/workflows/runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Execute Keycloak 26.8.0 runtime proof
+        env:
+          KEYCLOAK_IMAGE: quay.io/keycloak/keycloak:26.8.0
+        run: bash scripts/runtime-keycloak-container.sh
