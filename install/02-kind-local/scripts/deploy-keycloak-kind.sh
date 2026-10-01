@@ -1,80 +1,50 @@
-#!/bin/bash
-# Auteur : Zidane Djamal
-# Description : Script de déploiement automatisé de Keycloak sur un cluster Kind (Kubernetes local).
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MANIFEST_DIR="$(cd "$SCRIPT_DIR/../manifests" && pwd)"
 
-echo "=================================================================="
-echo "  Déploiement Keycloak sur Kubernetes in Docker (Kind)            "
-echo "=================================================================="
+CLUSTER_NAME="${CLUSTER_NAME:-keycloak-cluster}"
+NAMESPACE="${NAMESPACE:-keycloak-system}"
+KEYCLOAK_VERSION="${KEYCLOAK_VERSION:-26.8.0}"
 
-CLUSTER_NAME="keycloak-cluster"
-NAMESPACE="keycloak-system"
+: "${KC_DB_USERNAME:?set KC_DB_USERNAME}"
+: "${KC_DB_PASSWORD:?set KC_DB_PASSWORD}"
 
-echo "[1/8] Création du cluster Kind avec NGINX Ingress Controller"
-cat <<EOF | kind create cluster --name $CLUSTER_NAME --config=-
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
-  extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
+command -v kind >/dev/null 2>&1 || { echo "kind is required"; exit 1; }
+command -v kubectl >/dev/null 2>&1 || { echo "kubectl is required"; exit 1; }
+
+if ! kind get clusters | grep -qx "$CLUSTER_NAME"; then
+  kind create cluster --name "$CLUSTER_NAME"
+fi
+
+kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cat >"$tmp/kustomization.yaml" <<EOF
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: $NAMESPACE
+resources:
+  - github.com/keycloak/keycloak-k8s-resources/kubernetes?ref=$KEYCLOAK_VERSION
 EOF
 
-echo "[2/8] Installation du NGINX Ingress Controller"
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-echo "Attente de l'Ingress Controller..."
-sleep 10
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
+echo "== Keycloak Operator $KEYCLOAK_VERSION"
+kubectl apply -k "$tmp"
+kubectl -n "$NAMESPACE" rollout status deployment/keycloak-operator --timeout=240s
 
-echo "[3/8] Création du Namespace : $NAMESPACE"
-kubectl create namespace $NAMESPACE || true
+echo "== Database credential Secret created at runtime"
+kubectl -n "$NAMESPACE" create secret generic keycloak-db-secret   --from-literal=username="$KC_DB_USERNAME"   --from-literal=password="$KC_DB_PASSWORD"   --dry-run=client -o yaml | kubectl apply -f -
 
-echo "[4/8] Installation des CRDs de l'Operator Keycloak"
-kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.1.0/kubernetes/crd.yaml
+kubectl apply -f "$MANIFEST_DIR/02-postgres.yaml"
+kubectl -n "$NAMESPACE" rollout status statefulset/postgresql --timeout=240s
 
-echo "[5/8] Déploiement de l'Operator Keycloak"
-kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.1.0/kubernetes/kubernetes.yml -n $NAMESPACE
-echo "Attente de l'Operator..."
-sleep 5
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=keycloak-operator -n $NAMESPACE --timeout=120s
+kubectl apply -f "$MANIFEST_DIR/03-keycloak-cr.yaml"
+kubectl -n "$NAMESPACE" wait --for=condition=Ready keycloak/keycloak --timeout=600s
 
-echo "[6/8] Création des Secrets et Déploiement de PostgreSQL"
-# Simulé ici, les manifests devraient être créés (voir README)
-kubectl apply -f ../manifests/01-postgres-secret.yaml -n $NAMESPACE
-kubectl apply -f ../manifests/02-postgres.yaml -n $NAMESPACE
-echo "Attente de PostgreSQL..."
-sleep 5
-kubectl wait --for=condition=ready pod -l app=postgresql -n $NAMESPACE --timeout=120s
+kubectl apply -f "$MANIFEST_DIR/04-keycloak-ingress.yaml"
 
-echo "[7/8] Déploiement de l'instance Keycloak"
-kubectl apply -f ../manifests/03-keycloak-cr.yaml -n $NAMESPACE
-echo "Attente de Keycloak..."
-sleep 10
-kubectl wait --for=condition=ready keycloak/keycloak -n $NAMESPACE --timeout=300s
-
-echo "[8/8] Création de l'Ingress Keycloak"
-kubectl apply -f ../manifests/04-keycloak-ingress.yaml -n $NAMESPACE
-
-echo "=================================================================="
-echo "  Déploiement Terminé avec Succès !                               "
-echo "=================================================================="
-echo "Veuillez ajouter '127.0.0.1 keycloak.local' à votre /etc/hosts"
-echo "URL d'accès : http://keycloak.local"
-echo "Utilisateur : admin"
-echo "Mot de passe: adminadmin"
-echo "=================================================================="
+echo "KIND_KEYCLOAK_DEPLOY=PASS"
+echo "Operator-generated initial admin Secret: keycloak-initial-admin"
+echo "No credential value is printed or stored by this script."
