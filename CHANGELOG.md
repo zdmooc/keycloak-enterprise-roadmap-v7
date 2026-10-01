@@ -1,15 +1,15 @@
 # Changelog
 
-## V7
-- scénario `01-keycloak-oauth2-proxy-traefik-whoami` rendu réellement exécutable en local ;
-- ajout d’un realm importable automatiquement ;
-- ajout d’un utilisateur de démo et d’un client OIDC confidentiel ;
-- ajout de scripts `up/down/logs/smoke/preflight` ;
-- ajout d’un `Makefile` de pilotage local ;
-- durcissement de la documentation de validation.
+## 2026-10-01 — O6 hardening
 
-## V6
-- ajout des scénarios intégrés de bout en bout.
-
-## V5
-- renforcement des intégrations applicatives réelles.
+- removed generated OAuth access/refresh tokens from current main;
+- documented Git-history exposure boundary;
+- removed fixed credential Kubernetes Secret manifests;
+- generated local scenario secrets at runtime;
+- moved active Keycloak examples to 26.8.0 / CR v2beta1;
+- cleaned stale V3/example.invalid Argo CD manifests;
+- added bounded OpenShift GitOps Keycloak contract;
+- refreshed HA roadmap for multi-cluster v2/stateless direction;
+- classified cloud Terraform/Ansible as requalification references;
+- added static/security CI;
+- added Keycloak 26.8 runtime proof with restart persistence.
