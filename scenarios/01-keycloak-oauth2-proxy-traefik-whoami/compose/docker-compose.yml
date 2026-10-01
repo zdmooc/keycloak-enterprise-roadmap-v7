@@ -1,8 +1,6 @@
-version: "3.9"
-
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:26.1
+    image: quay.io/keycloak/keycloak:26.8.0
     command:
       - start-dev
       - --http-enabled=true
@@ -10,12 +8,12 @@ services:
       - --proxy-headers=xforwarded
       - --import-realm
     environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-adminadmin}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:?run scripts/prepare.sh}
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
     volumes:
-      - ../realm:/opt/keycloak/data/import:ro
+      - ../generated:/opt/keycloak/data/import:ro
     ports:
       - "8080:8080"
     networks:
@@ -33,8 +31,8 @@ services:
       - --provider=keycloak-oidc
       - --oidc-issuer-url=${KEYCLOAK_EXTERNAL_URL:-http://keycloak.localhost:8080}/realms/${OIDC_REALM:-demo}
       - --client-id=${OIDC_CLIENT_ID:-whoami-proxy}
-      - --client-secret=${OIDC_CLIENT_SECRET:-whoami-proxy-secret}
-      - --cookie-secret=${OAUTH2_PROXY_COOKIE_SECRET:-0123456789abcdef0123456789abcdef0123456789ab=}
+      - --client-secret=${OIDC_CLIENT_SECRET:?run scripts/prepare.sh}
+      - --cookie-secret=${OAUTH2_PROXY_COOKIE_SECRET:?run scripts/prepare.sh}
       - --email-domain=*
       - --scope=openid profile email
       - --upstream=http://whoami:80
