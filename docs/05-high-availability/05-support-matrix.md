@@ -1,24 +1,21 @@
 # Support Matrix
 
-## Objectif
-Séparer clairement :
-- ce qui est explicitement documenté et testé par les guides officiels ;
-- ce qui est réaliste mais demande validation propre ;
-- ce qui est expérimental ou trop coûteux pour un gain incertain.
+**Reference date:** 2026-10-01
 
-## Catégories internes du dépôt
-### A — support / documentation officielle claire
-- single cluster à faible latence ;
-- management interface, health, metrics ;
-- upgrade avec vérification de compatibilité ;
-- Operator sur Kubernetes / OpenShift.
+| Area | Repository classification |
+|---|---|
+| Single-cluster Operator deployment | documented / primary baseline |
+| Multi-AZ single cluster | documented pattern; validate DB/placement |
+| Multi-cluster v2 / stateless (upstream 26.8) | supported upstream; context validation required |
+| Multi-cluster v1 / multi-site | deprecated upstream; migration/reference only |
+| RHBK 26.x Operator on OpenShift | supported vendor track; follow Red Hat compatibility |
+| Cross-region PRA | architecture + test program required |
+| SPI/custom providers | supported extension mechanism; upgrade tests mandatory |
+| Preview/experimental features | lab only unless explicit acceptance |
+| Production readiness | never inferred from documentation alone |
 
-### B — crédible mais à valider dans ton contexte
-- multi-cluster même région ;
-- PRA avec outillage et procédure spécifique ;
-- patterns B2B / Organizations avec exigences propres.
+## Rule
 
-### C — à traiter comme expérimental
-- topologies très distribuées multi-régions sans preuve sérieuse ;
-- patterns custom complexes non benchmarkés ;
-- extension SPI introduite sans stratégie d’upgrade.
+“Supported by product” and “proven in this environment” are separate dimensions.
+
+Use the claim/evidence matrix for the second dimension.
