@@ -11,7 +11,7 @@ KC_BOOTSTRAP_ADMIN_PASSWORD=ci-not-a-real-secret POSTGRES_PASSWORD=ci-not-a-real
 
 (
   cd scenarios/01-keycloak-oauth2-proxy-traefik-whoami
-  ./scripts/prepare.sh
+  bash ./scripts/prepare.sh
   docker compose --env-file .env -f compose/docker-compose.yml config >/dev/null
 )
 
