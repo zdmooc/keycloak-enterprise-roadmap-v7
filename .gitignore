@@ -23,3 +23,7 @@ labs-local/**/*.out
 **/refresh-token.json
 **/admin-token.json
 **/alice-token.json
+
+# Generated local scenario material
+scenarios/**/generated/
+scenarios/**/.env
