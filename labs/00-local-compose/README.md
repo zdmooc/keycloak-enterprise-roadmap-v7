@@ -18,6 +18,7 @@ Monter un lab local crédible avec PostgreSQL + Keycloak, health, metrics et exp
 ## Démarrage
 ```bash
 cp .env.example .env
+# renseigner KC_BOOTSTRAP_ADMIN_PASSWORD, POSTGRES_PASSWORD et KC_DB_PASSWORD
 docker compose up -d
 docker compose ps
 docker compose logs keycloak --tail=50
@@ -49,4 +50,6 @@ curl -s http://localhost:9000/metrics | head -40
 - sortie `docker compose ps` ;
 - réponse `health/ready` ;
 - extrait `metrics` ;
-- export JSON du realm.
+- export JSON du realm sans credentials/tokens persistés.
+
+Ne committer ni `.env`, ni token, ni export contenant des secrets.
