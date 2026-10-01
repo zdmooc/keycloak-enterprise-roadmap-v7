@@ -1,0 +1,56 @@
+name: Keycloak Specialist CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validation dependencies
+        run: pip install --disable-pip-version-check -r requirements-ci.txt
+
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: v1.31.0
+
+      - name: Static security and repository validation
+        run: python scripts/validate-static.py
+
+      - name: Shell syntax
+        run: |
+          bash -n install/01-crc-local/scripts/deploy-keycloak-crc.sh
+          bash -n install/02-kind-local/scripts/deploy-keycloak-kind.sh
+          bash -n scenarios/01-keycloak-oauth2-proxy-traefik-whoami/scripts/*.sh
+          bash -n scenarios/01-keycloak-oauth2-proxy-traefik-whoami/tests/*.sh
+
+      - name: YAML lint active surfaces
+        run: |
+          yamllint -c .yamllint.yml             gitops/argocd             manifests             install/01-crc-local/manifests             install/02-kind-local/manifests             labs/00-local-compose             labs/04-operator-openshift             scenarios/01-keycloak-oauth2-proxy-traefik-whoami/compose
+
+      - name: Render active surfaces
+        run: bash scripts/render-active.sh
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+
+      - name: Install kubeconform
+        run: |
+          go install github.com/yannh/kubeconform/cmd/kubeconform@v0.6.7
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+
+      - name: Kubernetes schema validation
+        run: kubeconform -strict -summary -ignore-missing-schemas build/keycloak-reference.yaml
