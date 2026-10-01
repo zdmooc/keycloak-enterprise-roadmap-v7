@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak-reference
+  namespace: openshift-gitops
+spec:
+  project: keycloak-specialist
+  source:
+    repoURL: https://github.com/zdmooc/keycloak-enterprise-roadmap-v7.git
+    targetRevision: main
+    path: manifests/kustomize
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
