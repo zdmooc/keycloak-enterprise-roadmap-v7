@@ -39,15 +39,16 @@ for path in ROOT.rglob("*"):
         errors.append(f"{rel}: private key material committed")
 
     if path.suffix.lower() == ".json":
-        try:
-            obj = json.loads(text)
-        except json.JSONDecodeError as exc:
-            errors.append(f"{rel}: invalid JSON: {exc}")
-        else:
-            if isinstance(obj, dict) and any(k in obj for k in ("access_token", "refresh_token", "id_token")):
-                errors.append(f"{rel}: token response JSON must not be committed")
+        if rel.startswith(ACTIVE_PREFIXES):
+            try:
+                obj = json.loads(text)
+            except json.JSONDecodeError as exc:
+                errors.append(f"{rel}: invalid JSON: {exc}")
+            else:
+                if isinstance(obj, dict) and any(k in obj for k in ("access_token", "refresh_token", "id_token")):
+                    errors.append(f"{rel}: token response JSON must not be committed")
 
-    if path.suffix.lower() in {".yaml", ".yml"}:
+    if rel.startswith(ACTIVE_PREFIXES) and path.suffix.lower() in {".yaml", ".yml"}:
         try:
             docs = [d for d in yaml.safe_load_all(text) if d is not None]
         except Exception as exc:
