@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-02 — credential hygiene follow-up
+
+- removed stale Bitnami Kind values containing fixed lab credentials;
+- required runtime credentials in kcadm/export helper scripts;
+- removed fixed benchmark password from current examples;
+- strengthened active-surface validation against common weak fixed credentials;
+- preserved the O6 evidence boundary: container runtime proven, CRC/RHBK still NOT_PROVEN.
+
 ## 2026-10-01 — O6 hardening
 
 - removed generated OAuth access/refresh tokens from current main;
@@ -13,7 +21,6 @@
 - classified cloud Terraform/Ansible as requalification references;
 - added static/security CI;
 - added Keycloak 26.8 runtime proof with restart persistence.
-
 
 ## 2026-10-01 — O6 complete
 
