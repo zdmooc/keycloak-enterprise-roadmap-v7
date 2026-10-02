@@ -23,6 +23,14 @@ ACTIVE_PREFIXES = (
 
 JWT_RE = re.compile(r"eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}")
 PRIVATE_KEY_RE = re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----")
+WEAK_CREDENTIAL_RE = re.compile(
+    r"""(?ix)
+    \b(?:password|passwd|secret|client_secret|adminpassword|admin_password)
+    \b\s*[:=]\s*["']?
+    (?:adminadmin|changeit|change-me|changeme|password123|welcome123)
+    \b
+    """
+)
 
 for path in ROOT.rglob("*"):
     if not path.is_file() or ".git" in path.parts:
@@ -38,15 +46,14 @@ for path in ROOT.rglob("*"):
     if PRIVATE_KEY_RE.search(text):
         errors.append(f"{rel}: private key material committed")
 
-    if path.suffix.lower() == ".json":
-        if rel.startswith(ACTIVE_PREFIXES):
-            try:
-                obj = json.loads(text)
-            except json.JSONDecodeError as exc:
-                errors.append(f"{rel}: invalid JSON: {exc}")
-            else:
-                if isinstance(obj, dict) and any(k in obj for k in ("access_token", "refresh_token", "id_token")):
-                    errors.append(f"{rel}: token response JSON must not be committed")
+    if path.suffix.lower() == ".json" and rel.startswith(ACTIVE_PREFIXES):
+        try:
+            obj = json.loads(text)
+        except json.JSONDecodeError as exc:
+            errors.append(f"{rel}: invalid JSON: {exc}")
+        else:
+            if isinstance(obj, dict) and any(k in obj for k in ("access_token", "refresh_token", "id_token")):
+                errors.append(f"{rel}: token response JSON must not be committed")
 
     if rel.startswith(ACTIVE_PREFIXES) and path.suffix.lower() in {".yaml", ".yml"}:
         try:
@@ -59,6 +66,8 @@ for path in ROOT.rglob("*"):
                 errors.append(f"{rel}: Kubernetes Secret object is forbidden in versioned YAML")
 
     if rel.startswith(ACTIVE_PREFIXES):
+        if WEAK_CREDENTIAL_RE.search(text):
+            errors.append(f"{rel}: fixed weak credential found on active surface")
         if "keycloak-enterprise-roadmap-v3" in text or "example.invalid/repo.git" in text:
             errors.append(f"{rel}: stale GitOps repository reference")
         if "KEYCLOAK_ADMIN_PASSWORD" in text or re.search(r"\bKEYCLOAK_ADMIN\b", text):
