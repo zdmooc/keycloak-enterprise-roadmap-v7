@@ -37,7 +37,20 @@ oc -n "$NAMESPACE" rollout status statefulset/postgresql --timeout=300s
 
 echo "== Keycloak CR"
 oc apply -f "$MANIFEST_DIR/05-keycloak-cr.yaml"
+set +e
 oc -n "$NAMESPACE" wait --for=condition=Ready keycloak/keycloak --timeout=600s
+kc_wait_rc=$?
+set -e
+
+if [[ "$kc_wait_rc" -ne 0 ]]; then
+  echo "== Keycloak readiness diagnostics"
+  oc -n "$NAMESPACE" get keycloak keycloak -o yaml || true
+  oc -n "$NAMESPACE" get pods,deploy,statefulset,svc,route,ingress -o wide 2>/dev/null || true
+  oc -n "$NAMESPACE" describe keycloak keycloak || true
+  oc -n "$NAMESPACE" describe pods || true
+  oc -n "$NAMESPACE" get events --sort-by=.lastTimestamp | tail -n 120 || true
+  exit "$kc_wait_rc"
+fi
 
 echo "== Result"
 oc -n "$NAMESPACE" get keycloak keycloak -o wide
