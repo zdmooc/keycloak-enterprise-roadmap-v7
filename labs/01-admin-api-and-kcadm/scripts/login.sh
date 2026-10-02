@@ -5,7 +5,7 @@ KCADM_BIN="${KCADM_BIN:-kcadm.sh}"
 SERVER="${SERVER:-http://localhost:8080}"
 REALM="${REALM:-master}"
 USER="${USER:-admin}"
-PASSWORD="${PASSWORD:-changeit}"
+: "${PASSWORD:?set PASSWORD at runtime}"
 
 "${KCADM_BIN}" config credentials   --server "${SERVER}"   --realm "${REALM}"   --user "${USER}"   --password "${PASSWORD}"
 
