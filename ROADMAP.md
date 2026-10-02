@@ -15,7 +15,8 @@
 - O6 status: **COMPLETE**;
 - final static closeout before P0 sync: `36878286683` SUCCESS;
 - Keycloak 26.8 container runtime: proven;
-- current CRC/RHBK runtime: pending;
+- shared CRC/RHBK bootstrap subset: `CRC_SHARED_IDENTITY_BOOTSTRAP_PROVEN` on 2026-10-02;
+- full specialist CRC promotion (metrics/token/restart/upgrade as applicable): pending;
 - HA/multi-site: reference until failure tests;
 - production: not claimed.
 
