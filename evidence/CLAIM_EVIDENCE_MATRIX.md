@@ -18,7 +18,8 @@
 | restart persistence | CI_RUNTIME_PROVEN_CONTAINER_KEYCLOAK | run 36877375874 |
 | post-restart token issuance | CI_RUNTIME_PROVEN_CONTAINER_KEYCLOAK | run 36877375874 |
 | Scenario 01 secret-safe config | STATIC_VALIDATED | specialist CI |
-| Current CRC/RHBK execution | NOT_PROVEN | local execution gate exists |
+| Shared CRC/RHBK bootstrap subset | CRC_SHARED_IDENTITY_BOOTSTRAP_PROVEN | 2026-10-02 via Shared Platform orchestration using this repository's CRC deploy path |
+| Full specialist CRC/RHBK execution | PARTIAL / NOT_FULLY_PROVEN | metrics/token/restart persistence/upgrade evidence still requires explicit CRC replay |
 | LDAP/AD federation runtime | REFERENCE | NOT_RUNTIME_PROVEN |
 | Identity brokering runtime | REFERENCE | NOT_RUNTIME_PROVEN |
 | WebAuthn/passkeys runtime | REFERENCE | NOT_RUNTIME_PROVEN |
@@ -78,8 +79,20 @@ No historical token value is used as evidence or reproduced in this repository's
 
 ## CRC / OpenShift boundary
 
-Current CRC/RHBK execution remains `NOT_PROVEN`.
+A bounded CRC/RHBK execution was observed on 2026-10-02 through `shared-platform-services-openshift`, using this repository's `install/01-crc-local/scripts/deploy-keycloak-crc.sh`.
 
-Only a fresh observed OpenShift execution may promote that level.
+Observed subset:
+- Operator installed/ready for the lab path;
+- PostgreSQL lab dependency running;
+- Keycloak CR Ready;
+- Keycloak pod running;
+- Route reachable;
+- shared realm `mayabank`;
+- OIDC discovery valid.
 
-Execution template: `platform/crc/EVIDENCE_TEMPLATE.md`.
+Allowed bounded claim:
+`CRC_SHARED_IDENTITY_BOOTSTRAP_PROVEN`.
+
+Do not upgrade this to full `CRC_RUNTIME_PROVEN_KEYCLOAK` until the specialist CRC template also captures the additional required behaviors such as metrics, token issuance and restart persistence (plus upgrade/backup/federation when claimed).
+
+Execution template remains: `platform/crc/EVIDENCE_TEMPLATE.md`.
