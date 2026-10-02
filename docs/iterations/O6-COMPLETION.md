@@ -93,3 +93,15 @@ production                        NOT_CLAIMED
 ```
 
 Future work is environment- or mission-driven, not a blocker for O6 repository hardening.
+
+
+## Post-O6 evidence promotion — 2026-10-02
+
+The O6 closure remains valid. After closure, the active CRC deployment path was reused by `shared-platform-services-openshift` and observed successfully on OpenShift Local / CRC 4.22.7.
+
+Bounded observed claim:
+`CRC_SHARED_IDENTITY_BOOTSTRAP_PROVEN`.
+
+Observed: RHBK Operator, PostgreSQL lab dependency, Keycloak CR Ready, Keycloak pod Running, Route, shared `mayabank` realm and OIDC discovery.
+
+This is an evidence promotion after O6, not a rewrite of O6 history. Full specialist CRC/Day-2 behaviors remain pending until explicitly replayed and captured.
