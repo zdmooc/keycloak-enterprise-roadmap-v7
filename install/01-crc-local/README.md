@@ -4,7 +4,7 @@
 
 Active **CRC/OpenShift lab contract** for Red Hat Build of Keycloak through OperatorHub.
 
-It is a lab, not a claim about a current running CRC.
+It is a lab contract. This exact deployment path was reused by `shared-platform-services-openshift` during the observed CRC 4.22.7 shared-identity bootstrap on 2026-10-02.
 
 ## Secret model
 
@@ -46,5 +46,7 @@ Capture:
 - OIDC discovery;
 - restart/upgrade result if tested.
 
-Allowed current claim:
-`IMPLEMENTED / CRC_RUNTIME_NOT_PROVEN_CURRENT_O6`.
+Observed bounded claim after the 2026-10-02 shared-platform execution:
+`CRC_SHARED_IDENTITY_BOOTSTRAP_PROVEN`.
+
+This covers deployment readiness + shared realm/OIDC discovery only. Full specialist CRC evidence still requires the broader checks listed in `platform/crc/EVIDENCE_TEMPLATE.md`.
