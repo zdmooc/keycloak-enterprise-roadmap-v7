@@ -4,7 +4,7 @@ Référentiel spécialiste **Keycloak / IAM / OIDC / OAuth 2.0 / SAML** du portf
 
 ## Statut
 
-**O6 COMPLETE — STATIC_VALIDATED + CI_RUNTIME_PROVEN_CONTAINER_KEYCLOAK / CRC CURRENT NOT_PROVEN**
+**O6 COMPLETE — STATIC_VALIDATED + CI_RUNTIME_PROVEN_CONTAINER_KEYCLOAK + CRC_SHARED_IDENTITY_BOOTSTRAP_PROVEN (bounded subset)**
 
 ## Rôle canonique
 
@@ -63,7 +63,20 @@ CI statique de clôture avant le commit final O6 : `36878286683` = **SUCCESS** s
 
 ## OpenShift / CRC
 
-Le parcours CRC/RHBK est implémenté mais le **runtime CRC actuel reste NOT_PROVEN** jusqu'à exécution observée.
+Le parcours CRC/RHBK a désormais une **preuve bornée observée le 02/10/2026** via l'orchestration `shared-platform-services-openshift`, qui réutilise directement `install/01-crc-local/scripts/deploy-keycloak-crc.sh`.
+
+Observé sur CRC 4.22.7 :
+- RHBK Operator installé ;
+- PostgreSQL lab Running ;
+- Keycloak CR Ready ;
+- pod Keycloak Running ;
+- Route publique ;
+- realm partagé `mayabank` créé/vérifié ;
+- OIDC discovery valide.
+
+Claim autorisé : `CRC_SHARED_IDENTITY_BOOTSTRAP_PROVEN`.
+
+Cela **ne** promeut pas encore le spécialiste au niveau complet `CRC_RUNTIME_PROVEN_KEYCLOAK` : metrics, token issuance, restart persistence, upgrade, federation, backup/restore et HA doivent être rejoués/capturés explicitement sur CRC avant une telle promotion.
 
 ## Structure
 
