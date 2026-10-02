@@ -1,14 +1,29 @@
 import http from 'k6/http';
-import { check, sleep } from 'k6';
+import { check, fail, sleep } from 'k6';
 
 export const options = {
   vus: 5,
   duration: '30s',
 };
 
+const baseUrl = __ENV.BASE_URL || 'http://localhost:8080';
+const realm = __ENV.REALM || 'master';
+const clientId = __ENV.CLIENT_ID || 'admin-cli';
+const username = __ENV.USERNAME || 'admin';
+const password = __ENV.PASSWORD;
+
+if (!password) {
+  fail('PASSWORD must be provided at runtime');
+}
+
 export default function () {
-  const url = 'http://localhost:8080/realms/master/protocol/openid-connect/token';
-  const payload = 'grant_type=password&client_id=admin-cli&username=admin&password=changeit';
+  const url = `${baseUrl}/realms/${realm}/protocol/openid-connect/token`;
+  const payload = {
+    grant_type: 'password',
+    client_id: clientId,
+    username,
+    password,
+  };
   const params = {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   };
