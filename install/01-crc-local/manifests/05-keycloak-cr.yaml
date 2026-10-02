@@ -34,7 +34,13 @@ spec:
   resources:
     requests:
       memory: 1Gi
-      cpu: 500m
+      cpu: 50m
     limits:
       memory: 2Gi
       cpu: "1"
+
+# CRC local compact scheduling note:
+# cpu request 50m is intentionally lab-only so the single-node CRC can schedule
+# Keycloak when other retained POCs already reserve most allocatable CPU.
+# The 1 CPU limit remains available for startup/runtime burst.
+# This is not a production sizing recommendation.
