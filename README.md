@@ -2,6 +2,16 @@
 
 Référentiel spécialiste **Keycloak / IAM / OIDC / OAuth 2.0 / SAML** du portfolio.
 
+## D-098 — SQY IAM / Secrets contribution
+
+The SQY CaaS mission reuses this repository as the IAM specialist for OIDC, secret rotation,
+LDAP/AD federation architecture, TLS and identity operations.
+
+Mission pack:
+- `docs/10-governance/07-d098-sqy-iam-secrets-pack.md`.
+
+This does not change the CaaS ownership of `k8s-openshift-cluster-factory`.
+
 ## Statut
 
 **O6 COMPLETE — STATIC_VALIDATED + CI_RUNTIME_PROVEN_CONTAINER_KEYCLOAK + CRC_SHARED_IDENTITY_BOOTSTRAP_PROVEN (bounded subset)**
